@@ -1,0 +1,20 @@
+.product-item-info {
+    max-width: 240px;
+    margin: auto;
+}
+.checkout-onepage-success .page-title-wrapper{
+    margin-bottom: 20px;
+}
+.checkout-onepage-success .print {
+    display: block;
+    float: none;
+    margin: 22px 0 0;
+    border: 1px solid;
+    border-radius: 10px;
+    width: 100px;
+    margin: 20px auto 0px;
+}
+.checkout-cart-index .cart-summary .checkout-methods-items li:nth-child(2){
+    display: block;
+    text-align: center;
+}

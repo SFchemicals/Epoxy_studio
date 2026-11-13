@@ -1,0 +1,50 @@
+{
+	# Local dev: Caddy issues its own certificate for epoxy.local
+	local_certs
+}
+
+epoxy.local {
+	root * /var/www/html/pub
+	encode zstd gzip
+	request_body {
+		max_size 64MB
+	}
+
+	# Never expose these
+	@denied path /media/customer/* /media/downloadable/* /media/import/* /media/custom_options/* /errors/*.xml /errors/*.phtml /media/*.php /static/*.php
+	respond @denied 403
+
+	# Static files: strip deploy version prefix, fall back to static.php
+	@static path_regexp st ^/static/(?:version[^/]+/)?(.+)$
+	handle @static {
+		@staticFile file /static/{re.st.1}
+		handle @staticFile {
+			rewrite * /static/{re.st.1}
+			header Cache-Control "public, max-age=31536000"
+			file_server
+		}
+		handle {
+			rewrite * /static.php?resource={re.st.1}
+			php_fastcgi php:9000
+		}
+	}
+
+	# Media: serve from disk, fall back to get.php (image resize on the fly)
+	handle /media/* {
+		@mediaFile file
+		handle @mediaFile {
+			file_server
+		}
+		handle {
+			rewrite * /get.php?{query}
+			php_fastcgi php:9000
+		}
+	}
+
+	handle {
+		php_fastcgi php:9000 {
+			read_timeout 600s
+		}
+		file_server
+	}
+}

@@ -1,0 +1,62 @@
+<?php
+/** @var \Magento\Framework\View\Element\ButtonLockManager|null $buttonLockManager */
+$buttonLockManager = $block->getData('button_lock_manager');
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$title_content_form = $objectManager->get('Magento\Framework\App\Config\ScopeConfigInterface')->getValue('themeoption/newsletter_form/title_content_form', \Magento\Store\Model\ScopeInterface::SCOPE_STORE );
+$content_form = $objectManager->get('Magento\Framework\App\Config\ScopeConfigInterface')->getValue('themeoption/newsletter_form/content_form', \Magento\Store\Model\ScopeInterface::SCOPE_STORE );
+?>
+<div class="section block-newsletter-form">
+	<div class="container">
+		<div class="block newsletter newsletter-form"> 
+			<?php if($title_content_form && $title_content_form != '' || $content_form && $content_form != ''): ?>
+				<div class="elementor__header">
+					<?php if($title_content_form && $title_content_form != ''): ?>
+						<h3 class="elementor__headline">
+							<?= $title_content_form;?>
+						</h3>
+					<?php endif; ?> 
+					<?php if($content_form && $content_form != ''): ?>
+						<p class="elementor__description">
+							<?= $content_form;?>
+						</p>
+					<?php endif; ?> 
+				</div>
+			<?php endif; ?> 
+			<div class="content">
+				<form class="form subscribe"
+					novalidate
+					action="<?php /* @escapeNotVerified */ echo $block->getFormActionUrl() ?>"
+					method="post"
+					data-mage-init='{"validation": {"errorClass": "mage-error"}}'
+					id="newsletter-validate-detail">
+					<div class="field newsletter">
+						<label class="label" for="newsletter"><span><?php /* @escapeNotVerified */ echo __('Sign Up for Our Newsletter:') ?></span></label>
+						<div class="control">
+							<div class="input-focus">
+								<input name="email" type="email" id="newsletter"
+											placeholder="<?php /* @escapeNotVerified */ echo __('Enter your email') ?>"
+											data-validate="{required:true, 'validate-email':true}"/>
+							</div>	
+							 <div class="actions">
+								<button class="action subscribe primary" title="<?= $block->escapeHtmlAttr(__('Subscribe')) ?>" type="submit"<?php if ($buttonLockManager?->isDisabled('newsletter_form_submit')): ?> disabled="disabled"<?php endif; ?>>
+									<span><?= $block->escapeHtml(__('Subscribe')) ?></span>
+								</button>
+							</div>
+						</div>
+					</div>
+				   
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/x-magento-init">
+    {
+        "*": {
+            "Magento_Customer/js/block-submit-on-send": {
+                "formId": "newsletter-validate-detail"
+            }
+        }
+    }
+</script>

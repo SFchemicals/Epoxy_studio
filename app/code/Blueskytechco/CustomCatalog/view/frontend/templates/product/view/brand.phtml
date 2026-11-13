@@ -1,0 +1,33 @@
+<?php
+/**
+ * Custom Catalog for store
+ *
+ * @var $block \Magento\Catalog\Block\Product\View
+ * @var $escaper \Magento\Framework\Escaper
+ */
+?>
+<?php
+$_product = $block->getProduct();
+$view_model = $block->getViewModel();
+$brandValue = $_product->getData('brand');
+$thumbImage = '';
+$value = '';
+// PHP 8.5: never pass a null/empty option id to the swatch helper (null array offsets are deprecated).
+if ($brandValue !== null && $brandValue !== '' && $brandValue !== false) {
+    $_objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    $swatchHelper = $_objectManager->get(\Magento\Swatches\Helper\Data::class);
+    $swatchData = $swatchHelper->getSwatchesByOptionsId([$brandValue]);
+    if (isset($swatchData[$brandValue]['value'])) {
+        $swatchHelperMedia = $_objectManager->get(\Magento\Swatches\Helper\Media::class);
+        $thumbImage = $swatchHelperMedia->getSwatchAttributeImage('swatch_thumb', $swatchData[$brandValue]['value']);
+        $value = (string) $_product->getResource()->getAttribute('brand')->getFrontend()->getValue($_product);
+    }
+}
+?>
+<?php if ($view_model->getParamsProductBrand()) { ?>
+    <?php if ($thumbImage) { ?>
+        <div class="brand">
+            <img src="<?= $escaper->escapeUrl($thumbImage) ?>" alt="<?= $escaper->escapeHtmlAttr($value) ?>" />
+        </div>
+    <?php }?>
+<?php }?>
