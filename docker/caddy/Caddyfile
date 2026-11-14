@@ -1,9 +1,8 @@
-{
-	# Local dev: Caddy issues its own certificate for epoxy.local
-	local_certs
-}
-
-epoxy.local {
+# SITE_DOMAIN and CADDY_TLS come from .env (see docker-compose.yml)
+#   CADDY_TLS=internal          -> self-signed local cert (local dev)
+#   CADDY_TLS=you@example.com   -> real Let's Encrypt cert (staging/production)
+{$SITE_DOMAIN:epoxy.local} {
+	tls {$CADDY_TLS:internal}
 	root * /var/www/html/pub
 	encode zstd gzip
 	request_body {
