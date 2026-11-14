@@ -1,5 +1,17 @@
 name: epoxy
 
+# Memory budget, tuned for an 8 GB host (t4g.large). Limits are caps, not
+# reservations; the host also needs 2-4 GB swap for compile/deploy spikes.
+#   php 2.5G | cron 1.5G | opensearch 1.6G | db 1.5G | redis 768M | rabbitmq 512M | caddy 128M
+x-php-env: &php-env
+  PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT:-2G}
+  PHP_OPCACHE_MEMORY: ${PHP_OPCACHE_MEMORY:-256}
+  PHP_OPCACHE_VALIDATE: ${PHP_OPCACHE_VALIDATE:-1}
+  FPM_MAX_CHILDREN: ${FPM_MAX_CHILDREN:-8}
+  FPM_START_SERVERS: ${FPM_START_SERVERS:-2}
+  FPM_MIN_SPARE: ${FPM_MIN_SPARE:-1}
+  FPM_MAX_SPARE: ${FPM_MAX_SPARE:-4}
+
 x-app-volumes: &app-volumes
   - ./:/var/www/html
   # Media lives on the host (default ./pub/media); override with MEDIA_PATH in .env
@@ -15,7 +27,9 @@ services:
     image: epoxy-php:8.5
     restart: unless-stopped
     volumes: *app-volumes
+    mem_limit: ${PHP_MEM_LIMIT:-2560m}
     environment:
+      <<: *php-env
       XDEBUG_MODE: ${XDEBUG_MODE:-off}
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -36,6 +50,7 @@ services:
     restart: "no"
     volumes: *app-volumes
     environment:
+      <<: *php-env
       XDEBUG_MODE: "off"
       SITE_DOMAIN: ${SITE_DOMAIN:-epoxy.local}
       ADMIN_FRONTNAME: ${ADMIN_FRONTNAME:-admin}
@@ -66,7 +81,9 @@ services:
     image: epoxy-php:8.5
     restart: unless-stopped
     volumes: *app-volumes
+    mem_limit: ${CRON_MEM_LIMIT:-1536m}
     environment:
+      <<: *php-env
       XDEBUG_MODE: "off"
     # Runs Magento cron every minute (equivalent to crontab "* * * * *")
     command: >
@@ -83,6 +100,7 @@ services:
   caddy:
     image: caddy:2
     restart: unless-stopped
+    mem_limit: 128m
     ports:
       - "80:80"
       - "443:443"
@@ -101,14 +119,28 @@ services:
   db:
     image: mariadb:12.3
     restart: unless-stopped
+    mem_limit: ${DB_MEM_LIMIT:-1536m}
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
       MARIADB_DATABASE: ${DB_NAME:-magento}
       MARIADB_USER: ${DB_USER:-magento}
       MARIADB_PASSWORD: ${DB_PASSWORD:-magento}
-    command: --max_allowed_packet=64M --optimizer_switch='rowid_filter=off' --optimizer_use_condition_selectivity=1
+    command: >-
+      --max_allowed_packet=64M
+      --optimizer_switch=rowid_filter=off
+      --optimizer_use_condition_selectivity=1
+      --innodb_buffer_pool_size=${DB_BUFFER_POOL:-1G}
+      --innodb_log_file_size=256M
+      --innodb_flush_log_at_trx_commit=2
+      --innodb_flush_method=O_DIRECT
+      --max_connections=100
+      --tmp_table_size=64M
+      --max_heap_table_size=64M
+      --performance_schema=OFF
+      --skip-name-resolve
+    # Host-only: reach it via SSH tunnel, never from the internet
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -120,6 +152,15 @@ services:
   redis:
     image: redis:8
     restart: unless-stopped
+    mem_limit: 768m
+    # Cache (db0), full-page cache (db1) and sessions (db2). allkeys-lru drops
+    # the least-recently-used keys when full instead of failing writes; active
+    # sessions are recently used, so they survive.
+    command: >-
+      redis-server
+      --maxmemory ${REDIS_MAXMEMORY:-640mb}
+      --maxmemory-policy allkeys-lru
+      --save 300 100
     volumes:
       - redis_data:/data
     healthcheck:
@@ -131,11 +172,13 @@ services:
   rabbitmq:
     image: rabbitmq:4.3-management
     restart: unless-stopped
+    # RabbitMQ reads the cgroup limit and sets its watermark from it
+    mem_limit: 512m
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-magento}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-magento}
     ports:
-      - "15672:15672"
+      - "127.0.0.1:15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -147,11 +190,14 @@ services:
   opensearch:
     image: opensearchproject/opensearch:3
     restart: unless-stopped
+    mem_limit: ${OPENSEARCH_MEM_LIMIT:-1638m}
     environment:
       discovery.type: single-node
       DISABLE_SECURITY_PLUGIN: "true"
       DISABLE_INSTALL_DEMO_CONFIG: "true"
-      OPENSEARCH_JAVA_OPTS: -Xms1g -Xmx1g
+      OPENSEARCH_JAVA_OPTS: -Xms${OPENSEARCH_HEAP:-1g} -Xmx${OPENSEARCH_HEAP:-1g}
+      # Small EBS volume: don't flip indices to read-only at 95% disk
+      cluster.routing.allocation.disk.threshold_enabled: "false"
     ulimits:
       memlock: { soft: -1, hard: -1 }
       nofile: { soft: 65536, hard: 65536 }

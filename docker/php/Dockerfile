@@ -1,9 +1,25 @@
 FROM composer:2.10 AS composer
 
+# Multi-arch: every base image here ships linux/amd64 and linux/arm64, so this
+# builds natively on x86 and on AWS Graviton (t4g/m7g/c7g) without changes.
+# Build on the target host, or cross-build with
+#   docker buildx build --platform linux/arm64 docker/php
 FROM php:8.5-fpm
 
 ARG UID=1000
 ARG GID=1000
+
+# Parallel make for the PECL builds (t4g.large has 2 vCPUs; swoole/imagick are slow to compile)
+ENV MAKEFLAGS="-j2"
+
+# Runtime tunables read by php.ini / www.conf; override from docker-compose/.env
+ENV PHP_MEMORY_LIMIT=2G \
+    PHP_OPCACHE_MEMORY=256 \
+    PHP_OPCACHE_VALIDATE=1 \
+    FPM_MAX_CHILDREN=8 \
+    FPM_START_SERVERS=2 \
+    FPM_MIN_SPARE=1 \
+    FPM_MAX_SPARE=4
 
 # System libraries required by PHP extensions
 RUN apt-get update && apt-get install -y --no-install-recommends \
