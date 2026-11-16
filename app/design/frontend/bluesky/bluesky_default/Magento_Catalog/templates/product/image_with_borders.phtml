@@ -2,7 +2,8 @@
 $width = (int)$block->getWidth();
 $paddingBottom = $block->getRatio() * 100;
 $_helper = $this->helper('Blueskytechco\Themeoption\Helper\Product');
-$_product = $_helper->getProductById($block->getProductId());
+// Reuse the listing's product (set by Themeoption ImageFactoryPlugin); fall back to a load only if absent.
+$_product = $block->getData('product') ?: $_helper->getProductById($block->getProductId());
 ?> 
 <span class="product-image-container product-image-container-<?= /* @noEscape */ $block->getProductId() ?>" style="width: <?= $width ;?>px;" data-hover="image_hover_effects--zoom">
     <span class="product-image-wrapper" style="padding-bottom: <?= $paddingBottom ;?>%;">

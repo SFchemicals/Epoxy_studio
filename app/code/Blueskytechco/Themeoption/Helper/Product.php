@@ -199,7 +199,7 @@ class Product extends \Magento\Framework\App\Helper\AbstractHelper
     	if($this->getConfiguration('themesetting/product/show_new') == 'enable'){
 	        $newFromDate = $_product->getNewsFromDate();
 	        $newToDate = $_product->getNewsToDate();                 
-			$now = date("Y-m-d H:m(worry)");
+			$now = date("Y-m-d H:i:s");
 			$label = $this->getConfiguration('themesetting/product/show_new_text') ? $this->getConfiguration('themesetting/product/show_new_text') : __('NEW');
 			if($newFromDate && $newToDate && $newFromDate <= $now && $newToDate >= $now) {
 				return '<span class="newlabel label-product">'.$label.'</span>';
@@ -214,7 +214,7 @@ class Product extends \Magento\Framework\App\Helper\AbstractHelper
 	        $specialprice = $_product->getSpecialPrice();
 	        $specialPriceFromDate = $_product->getSpecialFromDate();
 	        $specialPriceToDate = $_product->getSpecialToDate();
-	        $now = date("Y-m-d H:m(worry)");
+	        $now = date("Y-m-d H:i:s");
 	        $html = '';
             $end_date_sale = $_product->getData('end_date_in_stock');
             $toDate = time();

@@ -52,8 +52,8 @@ class LayoutLoadBefore implements ObserverInterface
 			$store_id = $this->_storeManager->getStore()->getId();
 			
 			if ($product_sizechart) {
-				$sql = "SELECT * FROM ".$tableName ." WHERE entity_id='$product_sizechart'";
-				$data = $adapter->fetchRow($sql);
+				$sql = 'SELECT * FROM ' . $tableName . ' WHERE entity_id = ?';
+				$data = $adapter->fetchRow($sql, [$product_sizechart]);
 				if($data){
 					if($data['store_id'] == $store_id || $data['store_id'] == 0){
 						if($data['type'] == 1){
@@ -80,8 +80,8 @@ class LayoutLoadBefore implements ObserverInterface
 							break;
 						}
 					}
-					$sql = "SELECT * FROM ".$tableName ." WHERE entity_id='$product_sizechart'";
-					$data = $adapter->fetchRow($sql);
+					$sql = 'SELECT * FROM ' . $tableName . ' WHERE entity_id = ?';
+					$data = $adapter->fetchRow($sql, [$product_sizechart]);
 					if($data){
 						if($data['store_id'] == $store_id || $data['store_id'] == 0){
 							if($data['type'] == 1){
@@ -110,8 +110,8 @@ class LayoutLoadBefore implements ObserverInterface
 						break;
 					}
 				}
-				$sql = "SELECT * FROM ".$tableName ." WHERE entity_id='$product_sizechart'";
-				$data = $adapter->fetchRow($sql);
+				$sql = 'SELECT * FROM ' . $tableName . ' WHERE entity_id = ?';
+				$data = $adapter->fetchRow($sql, [$product_sizechart]);
 				if($data){
 					if($data['store_id'] == $store_id || $data['store_id'] == 0){
 						if($data['type'] == 1){

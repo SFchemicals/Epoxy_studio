@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <!-- Replaced by Plugin\LayoutResultPlugin so the rewrite is cached by FPC instead of re-run on every hit. -->
     <event name="controller_front_send_response_before">
-        <observer name="optimize_speed_controller_front_send_response_before" instance="Blueskytechco\OptimizeSpeed\Observer\OptimizeSpeedHttp" />
+        <observer name="optimize_speed_controller_front_send_response_before" disabled="true" />
     </event>
 </config>

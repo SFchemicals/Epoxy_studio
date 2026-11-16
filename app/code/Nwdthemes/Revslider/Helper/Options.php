@@ -7,6 +7,13 @@ class Options extends \Magento\Framework\App\Helper\AbstractHelper {
     protected $_optionFactory;
 
     /**
+     * Per-request cache of option values by handle (the same handles are read several times per page).
+     *
+     * @var array<string, mixed>
+     */
+    private array $optionCache = [];
+
+    /**
      *	Constructor
      */
 
@@ -29,6 +36,19 @@ class Options extends \Magento\Framework\App\Helper\AbstractHelper {
      */
 
     public function getOption($handle, $default = false) {
+        if (!array_key_exists($handle, $this->optionCache)) {
+            $this->optionCache[$handle] = $this->loadOption($handle);
+        }
+        return $this->optionCache[$handle][0] ? $this->optionCache[$handle][1] : $default;
+    }
+
+    /**
+     * Read an option from the database as [found, value].
+     *
+     * @param string $handle
+     * @return array{0: bool, 1: mixed}
+     */
+    private function loadOption($handle) {
         $collection = $this->_optionFactory->create()
             ->getCollection()
             ->addFieldToFilter('handle', $handle)
@@ -53,9 +73,9 @@ class Options extends \Magento\Framework\App\Helper\AbstractHelper {
                 $this->updateOption($handle, $unserializedValue);
                 $value = $unserializedValue;
             }
-            return $value;
+            return [true, $value];
         } else {
-            return $default;
+            return [false, null];
         }
     }
 
@@ -67,6 +87,7 @@ class Options extends \Magento\Framework\App\Helper\AbstractHelper {
      */
 
     public function updateOption($handle, $value = '') {
+        unset($this->optionCache[$handle]);
         $collection = $this->_optionFactory
             ->create()
             ->getCollection()
@@ -91,6 +112,7 @@ class Options extends \Magento\Framework\App\Helper\AbstractHelper {
      */
 
     public function deleteOption($handle) {
+        unset($this->optionCache[$handle]);
         $collection = $this->_optionFactory
             ->create()
             ->getCollection()
@@ -120,4 +142,4 @@ class Options extends \Magento\Framework\App\Helper\AbstractHelper {
         return $fixedString;
     }
 
-}
+}

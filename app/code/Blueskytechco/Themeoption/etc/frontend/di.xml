@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Catalog\Block\Product\ImageFactory">
+        <plugin name="themeoption_image_factory_product" type="Blueskytechco\Themeoption\Plugin\Catalog\ImageFactoryPlugin"/>
+    </type>
+</config>
