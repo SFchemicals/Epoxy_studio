@@ -46,7 +46,7 @@ define([
     
                 $widget._Rebuild();
     
-                if ($priceBox.is(':data(mage-priceBox)')) {
+                if ($priceBox.data('mage-priceBox') !== undefined) {
                     $widget._UpdatePrice();
                 }
     
@@ -71,8 +71,6 @@ define([
                             replace = type_gallery.hasClass('replace') ? true : false;
                         var data_image_json = replace ? JSON.parse($("[data-product-image-json]").text()) : '';
                         type_gallery.addClass('loading');
-                        console.log(width);
-                        console.log(height);
                         if (images_ar.length || replace) {
                             if (images_ar.length && $this.hasClass('selected')) {
                                 images_ar.forEach(function(item) {
@@ -165,8 +163,10 @@ define([
                                         }
                                     }
                                     setTimeout(function() {
-                                        el.slick(JSON.parse(option_slick));
-                                        if (nav.length) {
+                                        if (!el.hasClass('slick-initialized')) {
+                                            el.slick(JSON.parse(option_slick));
+                                        }
+                                        if (nav.length && !nav.hasClass('slick-initialized')) {
                                             nav.slick(JSON.parse(option_slick_nav));
                                         }
                                     }, 500);

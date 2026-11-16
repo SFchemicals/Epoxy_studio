@@ -230,7 +230,8 @@ class Storage extends WysiwygImagesStorage {
             $mimeType = $itemStats['mimetype'] ?? $this->mime->getMimeType($item->getFilename());
             $item->setMimeType($mimeType);
 
-            if ($this->isImage($item->getBasename())) {
+            // 2.4.9 core: skip zero-byte/invalid images (core isImageValid() is private)
+            if ($this->isImage($item->getBasename()) && $item->getSize() > 0) {
                 $thumbUrl = $this->getThumbnailUrl($item->getFilename(), true);
                 // generate thumbnail "on the fly" if it does not exists
                 if (!$thumbUrl) {
@@ -257,6 +258,11 @@ class Storage extends WysiwygImagesStorage {
                 }
             } else {
                 $thumbUrl = $this->_assetRepo->getUrl(self::THUMB_PLACEHOLDER_PATH_SUFFIX);
+                if ($this->isImage($item->getBasename())) {
+                    $this->logger->warning(
+                        sprintf("The image %s is invalid and cannot be displayed in the gallery.", $item->getBasename())
+                    );
+                }
             }
 
             $item->setThumbUrl($thumbUrl);

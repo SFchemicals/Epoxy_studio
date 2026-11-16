@@ -128,7 +128,9 @@ class Config extends \Magento\PageBuilder\Model\Stage\Config
     {
         return [
             'template_save' => $this->authorization->isAllowed(self::TEMPLATE_SAVE_RESOURCE),
-            'template_apply' => $this->authorization->isAllowed(self::TEMPLATE_APPLY_RESOURCE)
+            'template_apply' => $this->authorization->isAllowed(self::TEMPLATE_APPLY_RESOURCE),
+            // Added in PageBuilder 2.2.x (Magento 2.4.9)
+            'widget' => $this->authorization->isAllowed('Magento_Widget::widget_instance')
         ];
     }
 

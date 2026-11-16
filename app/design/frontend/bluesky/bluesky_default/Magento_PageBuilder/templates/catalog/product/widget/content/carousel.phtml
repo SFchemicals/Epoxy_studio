@@ -43,6 +43,9 @@ use Magento\Framework\App\Action\Action;
                                                     <?php foreach ($block->getOptionsData($_item) as $optionItem): ?>
                                                         <input type="hidden" name="<?= $block->escapeHtmlAttr($optionItem['name']) ?>" value="<?= $block->escapeHtmlAttr($optionItem['value']) ?>">
                                                     <?php endforeach; ?>
+                                                    <?php foreach ($postParams['data']['options'] ?? [] as $optionItem): ?>
+                                                        <input type="hidden" name="<?= $block->escapeHtmlAttr($optionItem['name']) ?>" value="<?= $block->escapeHtmlAttr($optionItem['value']) ?>">
+                                                    <?php endforeach; ?>
                                                     <input type="hidden" name="product" value="<?= $block->escapeHtmlAttr($postParams['data']['product']) ?>">
                                                     <input type="hidden" name="<?= /* @noEscape */ Action::PARAM_NAME_URL_ENCODED ?>" value="<?= /* @noEscape */ $postParams['data'][Action::PARAM_NAME_URL_ENCODED] ?>">
                                                     <?= $block->getBlockHtml('formkey') ?>

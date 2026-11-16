@@ -65,8 +65,9 @@ define([
 
             // set margin-top cho shipping method khi enable pick in store
             $(document).ajaxStop(function(){
-                if(!document.querySelector("#bss-store-pickup-selector")) {
-                    document.querySelector("#shipping").style.marginTop = '0';
+                var shippingEl = document.querySelector("#shipping");
+                if (!document.querySelector("#bss-store-pickup-selector") && shippingEl) {
+                    shippingEl.style.marginTop = '0';
                 }
             });
 

@@ -24,6 +24,7 @@ define([
                     }
 
                     this.modal.modal('openModal');
+                    this._syncCoreState(options, url);
                     $(window).trigger('reload.MediaGallery');
 
                     return;
@@ -48,8 +49,26 @@ define([
                     this.modal.html(data).trigger('contentUpdated');
                     this.modal.find('#insert_files').data('onInsert', onInsert);
                     this.modalLoaded = true;
+                    this._syncCoreState(options, url);
                 }.bind(this));
 
+            },
+
+            /**
+             * Magento 2.4.x browser keeps targetElementId/pathId; keep them in sync when available.
+             * Revslider URLs may not contain target_element_id/current_tree_path, so never throw.
+             */
+            _syncCoreState: function (options, url) {
+                try {
+                    if (typeof this.setTargetElementId === 'function') {
+                        this.setTargetElementId(options, url);
+                    }
+                } catch (e) {}
+                try {
+                    if (typeof this.setPathId === 'function') {
+                        this.setPathId(url);
+                    }
+                } catch (e) {}
             }
 
         },

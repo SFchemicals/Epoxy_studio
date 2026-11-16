@@ -113,7 +113,12 @@ class Product implements \Blueskytechco\SearchSuite\Model\SearchInterface
     {
         $text_suggestion = $this->_searchHelper->getConfigData('searchsuite/product_suggestion/text_suggestion');
         $category_id = $this->request->getParam('cate');
-        $category = $this->categoryRepository->get($category_id, $this->_storeManager->getStore()->getId());
+        try {
+            $category = $this->categoryRepository->get($category_id, $this->_storeManager->getStore()->getId());
+        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+            // Configured suggestion category (searchsuite/product_suggestion/category) no longer exists.
+            return ['size' => 0, 'text_suggestion' => '', 'url' => '#'];
+        }
 		$productCollection = $this->getProductCollectionByCategory($category_id);
 		foreach ($productCollection as $product) {
 			$responseData['data'][] = $this->getProductData($product);
