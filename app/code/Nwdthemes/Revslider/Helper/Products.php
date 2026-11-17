@@ -73,6 +73,9 @@ class Products extends \Magento\Framework\App\Helper\AbstractHelper {
 		}
 
 		$product = $this->_productFactory->create()->load($id);
+		if ( ! $product->getId()) {
+			return false;
+		}
 		return $this->_prepareProduct($product);
 	}
 
@@ -192,9 +195,10 @@ class Products extends \Magento\Framework\App\Helper\AbstractHelper {
 
 	private function _prepareProduct($product) {
 
-		if (isset($this->_products[$product->getId()]))
+		$productId = (string) $product->getId();
+		if ($productId !== '' && isset($this->_products[$productId]))
 		{
-			return $this->_products[$product->getId()];
+			return $this->_products[$productId];
 		}
 
 		$arrProduct = $product->getData();
@@ -235,7 +239,9 @@ class Products extends \Magento\Framework\App\Helper\AbstractHelper {
 		$arrProduct['view_link'] = $product->getProductUrl();
         $arrProduct['add_to_cart_action_callback'] = $this->_getAddToCartActionCallback($product);
 
-		$this->_products[$product->getId()] = $arrProduct;
+		if ($productId !== '') {
+			$this->_products[$productId] = $arrProduct;
+		}
 
 		return $arrProduct;
 	}
